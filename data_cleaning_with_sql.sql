@@ -28,7 +28,7 @@ AND a.[UniqueID ] <> b.[UniqueID ]
 WHERE a.PropertyAddress IS NULL;
 
 
---Break out PropertyAddress and OwnerAddress into individual columns (Address, City, State)
+--Break out PropertyAddress into individual columns (Address, City) using SUBSTRING
 SELECT
 SUBSTRING(PropertyAddress, 1, CHARINDEX(',', PropertyAddress) -1 ) AS Address,
 SUBSTRING(PropertyAddress, CHARINDEX(',', PropertyAddress) +1, LEN(PropertyAddress)) AS City
@@ -46,6 +46,8 @@ ADD PropertySplitCity NVARCHAR(255);
 UPDATE PortfolioProjects.dbo.NashvilleHousing
 SET PropertySplitCity = SUBSTRING(PropertyAddress, CHARINDEX(',', PropertyAddress) +1, LEN(PropertyAddress));
 
+
+--Break out OwnerAddress into individual columns (Address, City, State) using PARSENAME
 SELECT
 PARSENAME(REPLACE(OwnerAddress, ',','.'), 3),
 PARSENAME(REPLACE(OwnerAddress, ',','.'), 2),
@@ -94,7 +96,7 @@ CASE
 	END;
 
 
---Remove duplicates (not standard practice)
+--Remove duplicates (not best practice)
 WITH RowNumCTE AS (
 SELECT *, ROW_NUMBER() OVER (
 PARTITION BY ParcelID,
@@ -112,6 +114,6 @@ FROM RowNumCTE
 WHERE row_num > 1;
 
 
---Delete unused columns (not standard practice)
+--Delete unused columns (not best practice)
 ALTER TABLE PortfolioProjects.dbo.NashvilleHousing
 DROP COLUMN PropertyAddress, SaleDate, TaxDistrict, OwnerAddress
